@@ -52,8 +52,8 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Mission Control — AI Agent Orchestration Dashboard',
-  description: 'Open-source dashboard for AI agent orchestration. Manage agent fleets, dispatch tasks, track costs, and coordinate multi-agent workflows. Self-hosted, zero dependencies, SQLite-powered.',
+  title: 'Cortex',
+  description: 'Cortex — AI Agent Orchestration Dashboard with Mnemonic Memory',
   metadataBase,
   icons: {
     icon: [
@@ -64,22 +64,20 @@ export const metadata: Metadata = {
     shortcut: ['/icon.png'],
   },
   openGraph: {
-    title: 'Mission Control — AI Agent Orchestration Dashboard',
-    description: 'Open-source dashboard for AI agent orchestration. Manage agent fleets, dispatch tasks, track costs, and coordinate multi-agent workflows.',
-    images: [{ url: '/brand/mc-logo-512.png', width: 512, height: 512, alt: 'Mission Control — open-source AI agent orchestration dashboard' }],
-    type: 'website',
-    siteName: 'Mission Control',
+    title: 'Cortex',
+    description: 'Cortex — AI Agent Orchestration Dashboard with Mnemonic Memory',
+    images: [{ url: '/brand/mc-logo-512.png', width: 512, height: 512, alt: 'Cortex logo' }],
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'Mission Control — AI Agent Orchestration Dashboard',
-    description: 'Open-source dashboard for AI agent orchestration. Manage agent fleets, dispatch tasks, track costs, and coordinate multi-agent workflows.',
+    card: 'summary',
+    title: 'Cortex',
+    description: 'Cortex — AI Agent Orchestration Dashboard with Mnemonic Memory',
     images: ['/brand/mc-logo-512.png'],
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Mission Control',
+    title: 'Cortex',
   },
 }
 

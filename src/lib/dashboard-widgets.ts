@@ -99,6 +99,15 @@ export const WIDGET_CATALOG: DashboardWidget[] = [
     defaultSize: 'full',
     component: 'QuickActionsWidget',
   },
+  {
+    id: 'mnemonic-dashboard',
+    label: 'Mnemonic Memory',
+    description: 'Mnemonic v4 memory stats — total memories, categories, sources, and recent activity',
+    category: 'integrations',
+    modes: ['local', 'full'],
+    defaultSize: 'md',
+    component: 'MnemonicDashboardWidget',
+  },
 ]
 
 export const LOCAL_DEFAULT_LAYOUT = [

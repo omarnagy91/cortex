@@ -3,18 +3,12 @@ import { requireRole } from '@/lib/auth'
 
 const MNEMONIC_API_URL = process.env.MNEMONIC_API_URL || 'http://localhost:8765'
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   const auth = requireRole(request, 'viewer')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   try {
-    const body = await request.json()
-    const res = await fetch(`${MNEMONIC_API_URL}/search`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      cache: 'no-store',
-    })
+    const res = await fetch(`${MNEMONIC_API_URL}/stats`, { cache: 'no-store' })
     if (!res.ok) {
       return NextResponse.json({ error: 'Mnemonic API error' }, { status: res.status })
     }

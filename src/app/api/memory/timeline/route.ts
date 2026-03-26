@@ -9,14 +9,20 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url)
   const user_id = searchParams.get('user_id') || 'omar'
-  const max_nodes = searchParams.get('max_nodes') || '80'
+  const limit = searchParams.get('limit') || '100'
   const category = searchParams.get('category')
+  const min_importance = searchParams.get('min_importance')
+  const from = searchParams.get('from')
+  const to = searchParams.get('to')
 
-  const params = new URLSearchParams({ user_id, max_nodes })
+  const params = new URLSearchParams({ user_id, limit })
   if (category) params.set('category', category)
+  if (min_importance) params.set('min_importance', min_importance)
+  if (from) params.set('from', from)
+  if (to) params.set('to', to)
 
   try {
-    const res = await fetch(`${MNEMONIC_API_URL}/graph?${params}`, { cache: 'no-store' })
+    const res = await fetch(`${MNEMONIC_API_URL}/timeline?${params}`, { cache: 'no-store' })
     if (!res.ok) {
       return NextResponse.json({ error: 'Mnemonic API error' }, { status: res.status })
     }

@@ -327,7 +327,7 @@ async function installOpenClawLocal(job: InstallJob): Promise<void> {
     CI: '1',
   }
   try {
-    const result = await runCommand('bash', ['-c', 'set -o pipefail; yes "" 2>/dev/null | curl -fsSL https://get.openclaw.dev | bash'], {
+    const result = await runCommand('bash', ['-c', 'set -o pipefail; curl -fsSL https://get.openclaw.dev | bash -s -- --non-interactive'], {
       timeoutMs: 300_000, env,
     })
     if (result.stdout) job.output += result.stdout + '\n'
@@ -375,8 +375,9 @@ async function installHermesLocal(job: InstallJob): Promise<void> {
     DEBIAN_FRONTEND: 'noninteractive',
   }
   try {
-    // Pipe 'yes' to handle any interactive prompts, use pipefail to catch curl errors
-    const result = await runCommand('bash', ['-c', 'set -o pipefail; yes "" 2>/dev/null | curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash'], {
+    // Use --skip-setup since MC handles setup in its own UI
+    // Pipe empty stdin to prevent /dev/tty reads in Docker
+    const result = await runCommand('bash', ['-c', 'set -o pipefail; curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash -s -- --skip-setup'], {
       timeoutMs: 600_000, env,
     })
     if (result.stdout) job.output += result.stdout + '\n'

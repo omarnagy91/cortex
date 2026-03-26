@@ -200,12 +200,12 @@ function OpenClawSetup({ onClose, onComplete }: { onClose: () => void; onComplet
 // ─── Hermes Setup ────────────────────────────────────────────────────────
 
 function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete: () => void }) {
-  const [step, setStep] = useState<'hook' | 'provider' | 'identity' | 'ready'>('hook')
+  const [step, setStep] = useState<'hook' | 'provider' | 'identity' | 'gateway' | 'ready'>('hook')
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hermesStatus, setHermesStatus] = useState<any>(null)
   const [providerKey, setProviderKey] = useState('')
-  const [providerType, setProviderType] = useState<'anthropic' | 'openai' | 'openrouter' | 'nous'>('anthropic')
+  const [providerType, setProviderType] = useState<'anthropic' | 'openai' | 'openai_oauth' | 'openrouter' | 'nous' | 'google' | 'xai'>('anthropic')
   const [providerSaved, setProviderSaved] = useState(false)
   const [soulContent, setSoulContent] = useState('')
 
@@ -262,9 +262,9 @@ function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete:
 
       {/* Step indicators */}
       {(() => {
-        const steps = ['hook', 'provider', 'identity', 'ready'] as const
+        const steps = ['hook', 'provider', 'identity', 'gateway', 'ready'] as const
         const currentIdx = steps.indexOf(step)
-        const labels = ['Hook', 'Provider', 'Identity', 'Ready']
+        const labels = ['Hook', 'Provider', 'Identity', 'Gateway', 'Ready']
         return (
           <div className="flex items-center gap-1.5 mb-6">
             {steps.map((s, i) => (
@@ -338,12 +338,14 @@ function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete:
             <p className="text-xs text-muted-foreground">Hermes needs an API key to talk to an LLM. Choose your provider:</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {([
               { id: 'anthropic', label: 'Anthropic', hint: 'Claude models', env: 'ANTHROPIC_API_KEY' },
-              { id: 'openai', label: 'OpenAI', hint: 'GPT models', env: 'OPENAI_API_KEY' },
+              { id: 'openai', label: 'OpenAI', hint: 'GPT / o-series', env: 'OPENAI_API_KEY' },
+              { id: 'openai_oauth', label: 'OpenAI OAuth', hint: 'Login via browser', env: '' },
               { id: 'openrouter', label: 'OpenRouter', hint: '200+ models', env: 'OPENROUTER_API_KEY' },
               { id: 'nous', label: 'Nous Portal', hint: 'Free tier', env: 'NOUS_API_KEY' },
+              { id: 'google', label: 'Google AI', hint: 'Gemini models', env: 'GOOGLE_API_KEY' },
             ] as const).map((p) => (
               <button
                 key={p.id}
@@ -361,21 +363,41 @@ function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete:
             ))}
           </div>
 
-          <div>
-            <label className="text-xs text-muted-foreground block mb-1">
-              API Key
-            </label>
-            <input
-              type="password"
-              value={providerKey}
-              onChange={(e) => setProviderKey(e.target.value)}
-              placeholder={`Enter your ${providerType === 'nous' ? 'Nous Portal' : providerType === 'openrouter' ? 'OpenRouter' : providerType === 'anthropic' ? 'Anthropic' : 'OpenAI'} API key...`}
-              className="w-full h-8 rounded border border-border/40 bg-surface-1 px-2.5 text-xs text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/30 font-mono"
-            />
-            <p className="text-[10px] text-muted-foreground/40 mt-1">
-              Saved to ~/.hermes/.env — never sent to Mission Control
-            </p>
-          </div>
+          {providerType === 'openai_oauth' ? (
+            <div className="p-3 rounded-lg border border-border/20 bg-secondary/10 text-xs space-y-2">
+              <p className="font-medium text-foreground/80">OpenAI OAuth Login</p>
+              <p className="text-muted-foreground">
+                Run this command in a terminal to authenticate via browser:
+              </p>
+              <div className="bg-black/20 rounded p-2 font-mono text-[11px]">
+                <p><span className="text-muted-foreground/50">$</span> hermes model openai</p>
+              </div>
+              <p className="text-muted-foreground/50 text-[10px]">
+                This opens a browser window for OAuth login. No API key needed.
+              </p>
+            </div>
+          ) : (
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">
+                API Key
+              </label>
+              <input
+                type="password"
+                value={providerKey}
+                onChange={(e) => setProviderKey(e.target.value)}
+                placeholder={`Enter your ${
+                  providerType === 'nous' ? 'Nous Portal' :
+                  providerType === 'openrouter' ? 'OpenRouter' :
+                  providerType === 'google' ? 'Google AI' :
+                  providerType === 'anthropic' ? 'Anthropic' : 'OpenAI'
+                } API key...`}
+                className="w-full h-8 rounded border border-border/40 bg-surface-1 px-2.5 text-xs text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/30 font-mono"
+              />
+              <p className="text-[10px] text-muted-foreground/40 mt-1">
+                Saved to ~/.hermes/.env — never sent to Mission Control
+              </p>
+            </div>
+          )}
 
           {providerSaved && (
             <div className="p-2.5 rounded-lg border border-green-500/20 bg-green-500/5 text-xs text-green-400">
@@ -388,6 +410,9 @@ function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete:
           <div className="flex justify-end gap-2">
             <Button variant="ghost" size="sm" onClick={() => setStep('hook')}>Back</Button>
             <Button variant="ghost" size="sm" onClick={() => setStep('identity')}>Skip</Button>
+            {providerType === 'openai_oauth' ? (
+              <Button size="sm" onClick={() => setStep('identity')}>Continue</Button>
+            ) : (
             <Button
               size="sm"
               disabled={!providerKey.trim() || running}
@@ -400,6 +425,7 @@ function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete:
                     openai: 'OPENAI_API_KEY',
                     openrouter: 'OPENROUTER_API_KEY',
                     nous: 'NOUS_API_KEY',
+                    google: 'GOOGLE_API_KEY',
                   }
                   const res = await fetch('/api/hermes', {
                     method: 'POST',
@@ -422,6 +448,7 @@ function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete:
             >
               {running ? 'Saving...' : 'Save & Continue'}
             </Button>
+            )}
           </div>
         </div>
       )}
@@ -465,10 +492,73 @@ function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete:
                     // non-critical
                   }
                 }
-                setStep('ready')
+                setStep('gateway')
               }}
             >
               {soulContent.trim() ? 'Save & Continue' : 'Skip'}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {step === 'gateway' && (
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm font-medium mb-1">Gateway & Channels</p>
+            <p className="text-xs text-muted-foreground">
+              The gateway lets you talk to Hermes from Telegram, Discord, Slack, WhatsApp, and Signal.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <StatusCard label="Gateway" ok={hermesStatus?.gatewayRunning} subtitle={hermesStatus?.gatewayRunning ? 'Running' : 'Not started'} />
+            <StatusCard label="Sessions" value={hermesStatus?.activeSessions || 0} ok={true} />
+          </div>
+
+          <div className="p-3 rounded-lg border border-border/20 bg-secondary/10 text-xs space-y-2.5">
+            <p className="font-medium text-foreground/80">Set up messaging channels:</p>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-5 text-center text-muted-foreground/50">1</span>
+                <div>
+                  <p className="text-foreground/80">Configure a platform</p>
+                  <div className="bg-black/20 rounded p-1.5 font-mono text-[11px] mt-1">
+                    <p><span className="text-muted-foreground/50">$</span> hermes gateway setup</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="w-5 text-center text-muted-foreground/50">2</span>
+                <div>
+                  <p className="text-foreground/80">Start the gateway</p>
+                  <div className="bg-black/20 rounded p-1.5 font-mono text-[11px] mt-1">
+                    <p><span className="text-muted-foreground/50">$</span> hermes gateway start</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="w-5 text-center text-muted-foreground/50">3</span>
+                <div>
+                  <p className="text-foreground/80">Send a message to your bot to test</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-2 pt-2 border-t border-border/10">
+              <p className="text-muted-foreground/50 text-[10px]">
+                Supported: Telegram, Discord, Slack, WhatsApp, Signal, Email.
+                Each platform needs a bot token — run gateway setup for guided configuration.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setStep('identity')}>Back</Button>
+            <Button size="sm" onClick={() => { fetchStatus(); setStep('ready') }}>
+              {hermesStatus?.gatewayRunning ? 'Continue' : 'Skip for now'}
             </Button>
           </div>
         </div>

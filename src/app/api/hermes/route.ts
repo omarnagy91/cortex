@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'key and value are required' }, { status: 400 })
       }
       // Only allow known env var keys
-      const ALLOWED_KEYS = ['ANTHROPIC_API_KEY', 'OPENAI_API_KEY', 'OPENROUTER_API_KEY', 'NOUS_API_KEY']
+      const ALLOWED_KEYS = ['ANTHROPIC_API_KEY', 'OPENAI_API_KEY', 'OPENROUTER_API_KEY', 'NOUS_API_KEY', 'GOOGLE_API_KEY', 'XAI_API_KEY']
       if (!ALLOWED_KEYS.includes(key)) {
         return NextResponse.json({ error: `Key must be one of: ${ALLOWED_KEYS.join(', ')}` }, { status: 400 })
       }

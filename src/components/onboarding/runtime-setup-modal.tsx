@@ -545,11 +545,17 @@ function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete:
             <p className="font-medium text-foreground/80">Set up messaging channels:</p>
 
             <div className="space-y-2.5">
-              <CopyableCommand command="hermes gateway start" label="Start the gateway" runnable />
               <CopyableCommand command="hermes status" label="Check status" runnable />
-              <p className="text-[10px] text-muted-foreground/50 mt-1">
-                To configure platforms (Telegram, Discord, etc.), run <code className="bg-black/20 px-1 rounded">hermes gateway setup</code> in an interactive terminal.
+              <CopyableCommand command="hermes doctor" label="Diagnose" runnable />
+              <p className="text-[10px] text-muted-foreground/50 mt-2">
+                The messaging gateway requires an interactive terminal to configure platforms (Telegram, Discord, Slack, WhatsApp, Signal).
+                Run in a terminal:
               </p>
+              <div className="bg-black/20 rounded px-2.5 py-1.5 font-mono text-[11px] text-muted-foreground/60 space-y-0.5">
+                <p>$ hermes gateway setup  <span className="text-muted-foreground/30"># configure platforms</span></p>
+                <p>$ hermes gateway        <span className="text-muted-foreground/30"># start in foreground</span></p>
+                <p>$ hermes gateway start  <span className="text-muted-foreground/30"># install as service (requires systemd)</span></p>
+              </div>
             </div>
 
             <div className="mt-2 pt-2 border-t border-border/10">
@@ -582,13 +588,9 @@ function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete:
 
           <div className="p-3 rounded-lg border border-border/20 bg-secondary/10 text-xs space-y-3">
             <p className="font-medium text-foreground/80">Quick commands:</p>
-            <CopyableCommand command="hermes status" label="Check agent status" runnable />
-            <CopyableCommand command="hermes doctor" label="Diagnose issues" runnable />
-            <CopyableCommand command="hermes config set model.provider openrouter" label="Set provider" runnable />
-            <CopyableCommand command="hermes gateway start" label="Start gateway" runnable />
-            <p className="text-[10px] text-muted-foreground/40 mt-1">
-              For interactive commands (hermes, hermes setup, hermes model), use a terminal session from the Chat panel.
-            </p>
+            <CopyableCommand command="hermes status" label="Check status" runnable />
+            <CopyableCommand command="hermes doctor" label="Diagnose" runnable />
+            <CopyableCommand command="hermes version" label="Version" runnable />
           </div>
 
           <div className="flex justify-end">

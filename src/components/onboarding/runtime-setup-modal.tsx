@@ -342,86 +342,85 @@ function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete:
 
           {(() => {
             const PROVIDERS = [
-              { id: 'anthropic', label: 'Anthropic', hint: 'Claude models', env: 'ANTHROPIC_API_KEY', hermesProvider: 'anthropic', models: ['claude-sonnet-4-6', 'claude-opus-4-6', 'claude-haiku-4-5'] },
-              { id: 'openai', label: 'OpenAI', hint: 'GPT / o-series', env: 'OPENAI_API_KEY', hermesProvider: 'openai', models: ['gpt-4.1', 'gpt-4.1-mini', 'o3', 'o4-mini'] },
-              { id: 'openai_oauth', label: 'OpenAI OAuth', hint: 'Login via browser', env: '', hermesProvider: 'openai', models: ['gpt-4.1', 'gpt-4.1-mini', 'o3'] },
-              { id: 'openrouter', label: 'OpenRouter', hint: '200+ models', env: 'OPENROUTER_API_KEY', hermesProvider: 'openrouter', models: ['anthropic/claude-sonnet-4-6', 'openai/gpt-4.1', 'google/gemini-2.5-pro'] },
-              { id: 'nous', label: 'Nous Portal', hint: 'Free tier', env: 'NOUS_API_KEY', hermesProvider: 'nous', models: ['hermes-3-llama-3.1-70b', 'hermes-3-llama-3.1-8b'] },
-              { id: 'google', label: 'Google AI', hint: 'Gemini models', env: 'GOOGLE_API_KEY', hermesProvider: 'google', models: ['gemini-2.5-pro', 'gemini-2.5-flash'] },
+              { id: 'anthropic', label: 'Anthropic', hint: 'Claude', env: 'ANTHROPIC_API_KEY', hermesProvider: 'anthropic', models: ['claude-sonnet-4-6', 'claude-opus-4-6', 'claude-haiku-4-5', 'claude-sonnet-4-5'] },
+              { id: 'openai', label: 'OpenAI', hint: 'GPT / o-series / Codex', env: 'OPENAI_API_KEY', hermesProvider: 'openai', models: ['gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'o3', 'o4-mini', 'codex-mini-latest'] },
+              { id: 'openrouter', label: 'OpenRouter', hint: '200+ models', env: 'OPENROUTER_API_KEY', hermesProvider: 'openrouter', models: ['anthropic/claude-sonnet-4-6', 'openai/gpt-4.1', 'google/gemini-2.5-pro', 'meta-llama/llama-4-maverick', 'deepseek/deepseek-r1'] },
+              { id: 'google', label: 'Google AI', hint: 'Gemini', env: 'GOOGLE_API_KEY', hermesProvider: 'google', models: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'] },
+              { id: 'nous', label: 'Nous Portal', hint: 'Free tier', env: 'NOUS_API_KEY', hermesProvider: 'nous', models: ['hermes-3-llama-3.1-70b', 'hermes-3-llama-3.1-8b', 'deephermes-3-llama-3.3-70b'] },
+              { id: 'xai', label: 'xAI', hint: 'Grok', env: 'XAI_API_KEY', hermesProvider: 'xai', models: ['grok-3', 'grok-3-mini', 'grok-2'] },
             ] as const
             const currentProvider = PROVIDERS.find(p => p.id === providerType)
             const providerModels = currentProvider?.models || []
             const hermesProviderName = currentProvider?.hermesProvider || 'anthropic'
 
             return (<>
-          <div className="grid grid-cols-3 gap-2">
+          {/* Provider cards */}
+          <div className="grid grid-cols-3 gap-1.5">
             {PROVIDERS.map((p) => (
               <button
                 key={p.id}
                 type="button"
-                onClick={() => { setProviderType(p.id); setSelectedModel(p.models[0] || '') }}
-                className={`p-2.5 rounded-lg border text-left text-xs transition-colors ${
+                onClick={() => { setProviderType(p.id); setSelectedModel(p.models[0] || ''); setCustomModel('') }}
+                className={`px-2.5 py-2 rounded-lg border text-left text-xs transition-colors ${
                   providerType === p.id
                     ? 'border-primary/40 bg-primary/5 text-foreground'
                     : 'border-border/20 bg-secondary/10 text-muted-foreground hover:border-border/40'
                 }`}
               >
-                <span className="font-medium">{p.label}</span>
-                <span className="block text-[10px] text-muted-foreground/60 mt-0.5">{p.hint}</span>
+                <span className="font-medium text-[11px]">{p.label}</span>
+                <span className="block text-[10px] text-muted-foreground/50">{p.hint}</span>
               </button>
             ))}
           </div>
 
-          {/* Provider + Model config */}
-          <div className="p-3 rounded-lg border border-border/20 bg-secondary/10 text-xs space-y-3">
-            {/* Provider command */}
-            <CopyableCommand command={`hermes config set model.provider ${hermesProviderName}`} label="Set provider" runnable />
-
-            {/* Model selection */}
-            <div>
-              <label className="text-[10px] text-muted-foreground/60 uppercase tracking-wider block mb-1.5">Model</label>
-              <div className="grid grid-cols-2 gap-1.5 mb-2">
-                {providerModels.map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => { setSelectedModel(m); setCustomModel('') }}
-                    className={`px-2 py-1.5 rounded text-[11px] font-mono text-left transition-colors ${
-                      selectedModel === m && !customModel
-                        ? 'bg-primary/10 border border-primary/30 text-foreground'
-                        : 'bg-black/20 border border-transparent text-muted-foreground/70 hover:text-foreground hover:border-border/30'
-                    }`}
-                  >
-                    {m}
-                  </button>
-                ))}
-              </div>
-              <input
-                type="text"
-                value={customModel}
-                onChange={(e) => { setCustomModel(e.target.value); if (e.target.value) setSelectedModel(e.target.value) }}
-                placeholder="Or enter a custom model name..."
-                className="w-full h-7 rounded border border-border/30 bg-black/20 px-2 text-[11px] text-foreground font-mono placeholder:text-muted-foreground/30 focus:outline-none focus:ring-1 focus:ring-primary/30"
-              />
+          {/* Model grid */}
+          <div>
+            <label className="text-[10px] text-muted-foreground/50 uppercase tracking-wider block mb-1.5">Model</label>
+            <div className="flex flex-wrap gap-1 mb-1.5">
+              {providerModels.map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => { setSelectedModel(m); setCustomModel('') }}
+                  className={`px-2 py-1 rounded text-[10px] font-mono transition-colors ${
+                    selectedModel === m && !customModel
+                      ? 'bg-primary/15 border border-primary/30 text-foreground'
+                      : 'bg-black/15 border border-border/10 text-muted-foreground/60 hover:text-foreground hover:border-border/30'
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
             </div>
-
-            <CopyableCommand command={`hermes config set model.default ${customModel || selectedModel}`} label="Set model" runnable />
+            <input
+              type="text"
+              value={customModel}
+              onChange={(e) => { setCustomModel(e.target.value); if (e.target.value) setSelectedModel(e.target.value) }}
+              placeholder="Custom model..."
+              className="w-full h-6 rounded border border-border/20 bg-black/10 px-2 text-[10px] text-foreground font-mono placeholder:text-muted-foreground/20 focus:outline-none focus:ring-1 focus:ring-primary/30"
+            />
           </div>
 
-          {/* API Key input */}
+          {/* Apply config */}
+          <div className="p-2.5 rounded-lg border border-border/15 bg-secondary/5 text-xs space-y-1.5">
+            <CopyableCommand command={`hermes config set model.provider ${hermesProviderName}`} label="Provider" runnable />
+            <CopyableCommand command={`hermes config set model.default ${customModel || selectedModel}`} label="Model" runnable />
+          </div>
+
+          {/* API Key */}
           <div>
-            <label className="text-xs text-muted-foreground block mb-1">
+            <label className="text-[10px] text-muted-foreground/50 uppercase tracking-wider block mb-1">
               {currentProvider?.label} API Key
             </label>
             <input
               type="password"
               value={providerKey}
               onChange={(e) => setProviderKey(e.target.value)}
-              placeholder={`Enter your ${currentProvider?.label || ''} API key...`}
-              className="w-full h-8 rounded border border-border/40 bg-surface-1 px-2.5 text-xs text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/30 font-mono"
+              placeholder={`sk-...`}
+              className="w-full h-7 rounded border border-border/30 bg-surface-1 px-2 text-xs text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-1 focus:ring-primary/30 font-mono"
             />
-            <p className="text-[10px] text-muted-foreground/40 mt-1">
-              Saved to ~/.hermes/.env — never sent to Mission Control
+            <p className="text-[10px] text-muted-foreground/30 mt-0.5">
+              Saved to ~/.hermes/.env
             </p>
           </div>
           </>)

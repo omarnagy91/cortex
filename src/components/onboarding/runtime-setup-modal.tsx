@@ -364,19 +364,26 @@ function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete:
           </div>
 
           {providerType === 'openai_oauth' ? (
-            <div className="p-3 rounded-lg border border-border/20 bg-secondary/10 text-xs space-y-3">
-              <p className="font-medium text-foreground/80">OpenAI OAuth Login</p>
-              <p className="text-muted-foreground">
-                Run these commands in a terminal to authenticate via browser:
-              </p>
-              <div className="space-y-2">
-                <CopyableCommand command="hermes model openai" label="Set OpenAI as provider" runnable />
-                <CopyableCommand command="hermes setup" label="Or run full setup" runnable />
+            <div className="space-y-3">
+              <div className="p-3 rounded-lg border border-border/20 bg-secondary/10 text-xs space-y-2">
+                <p className="font-medium text-foreground/80">Configure OpenAI</p>
+                <div className="space-y-2">
+                  <CopyableCommand command="hermes config set model.provider openai" label="Set provider" runnable />
+                  <CopyableCommand command="hermes config set model.default gpt-4.1" label="Set model" runnable />
+                </div>
               </div>
-              <p className="text-muted-foreground/50 text-[10px]">
-                This opens a browser window for OAuth login. No API key needed.
-                After authenticating, Hermes will save the credentials automatically.
-              </p>
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">
+                  OpenAI API Key (optional — or use OAuth in an interactive terminal)
+                </label>
+                <input
+                  type="password"
+                  value={providerKey}
+                  onChange={(e) => setProviderKey(e.target.value)}
+                  placeholder="sk-..."
+                  className="w-full h-8 rounded border border-border/40 bg-surface-1 px-2.5 text-xs text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-primary/30 font-mono"
+                />
+              </div>
             </div>
           ) : (
             <div>
@@ -413,7 +420,23 @@ function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete:
             <Button variant="ghost" size="sm" onClick={() => setStep('hook')}>Back</Button>
             <Button variant="ghost" size="sm" onClick={() => setStep('identity')}>Skip</Button>
             {providerType === 'openai_oauth' ? (
-              <Button size="sm" onClick={() => setStep('identity')}>Continue</Button>
+              <Button size="sm" onClick={async () => {
+                if (providerKey.trim()) {
+                  setRunning(true)
+                  try {
+                    await fetch('/api/hermes', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ action: 'set-env', key: 'OPENAI_API_KEY', value: providerKey }),
+                    })
+                    setProviderSaved(true)
+                  } catch { /* ignore */ }
+                  setRunning(false)
+                }
+                setStep('identity')
+              }}>
+                {providerKey.trim() ? 'Save & Continue' : 'Continue'}
+              </Button>
             ) : (
             <Button
               size="sm"
@@ -521,9 +544,11 @@ function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete:
             <p className="font-medium text-foreground/80">Set up messaging channels:</p>
 
             <div className="space-y-2.5">
-              <CopyableCommand command="hermes gateway setup" label="1. Configure a platform" runnable />
-              <CopyableCommand command="hermes gateway start" label="2. Start the gateway" runnable />
-              <p className="text-muted-foreground/70 pl-1">3. Send a message to your bot to test</p>
+              <CopyableCommand command="hermes gateway start" label="Start the gateway" runnable />
+              <CopyableCommand command="hermes status" label="Check status" runnable />
+              <p className="text-[10px] text-muted-foreground/50 mt-1">
+                To configure platforms (Telegram, Discord, etc.), run <code className="bg-black/20 px-1 rounded">hermes gateway setup</code> in an interactive terminal.
+              </p>
             </div>
 
             <div className="mt-2 pt-2 border-t border-border/10">
@@ -556,10 +581,13 @@ function HermesSetup({ onClose, onComplete }: { onClose: () => void; onComplete:
 
           <div className="p-3 rounded-lg border border-border/20 bg-secondary/10 text-xs space-y-3">
             <p className="font-medium text-foreground/80">Quick commands:</p>
-            <CopyableCommand command="hermes" label="Start chatting" runnable />
-            <CopyableCommand command="hermes setup" label="Full interactive setup" runnable />
-            <CopyableCommand command="hermes gateway setup" label="Set up messaging" runnable />
-            <CopyableCommand command="hermes gateway start" label="Start the gateway" runnable />
+            <CopyableCommand command="hermes status" label="Check agent status" runnable />
+            <CopyableCommand command="hermes doctor" label="Diagnose issues" runnable />
+            <CopyableCommand command="hermes config set model.provider openrouter" label="Set provider" runnable />
+            <CopyableCommand command="hermes gateway start" label="Start gateway" runnable />
+            <p className="text-[10px] text-muted-foreground/40 mt-1">
+              For interactive commands (hermes, hermes setup, hermes model), use a terminal session from the Chat panel.
+            </p>
           </div>
 
           <div className="flex justify-end">

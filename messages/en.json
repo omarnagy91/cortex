@@ -821,7 +821,9 @@
     "submit": "Submit",
     "loadingTranscript": "Loading transcript...",
     "noSessionMessages": "No session messages",
-    "dunkIt": "Dunk It"
+    "dunkIt": "Dunk It",
+    "loadingTasks": "Loading tasks...",
+    "taskBoard": "Task Board"
   },
   "cronManagement": {
     "title": "Cron Management",
@@ -838,6 +840,7 @@
     "calMode_agenda": "Agenda",
     "calMode_week": "Week",
     "calMode_month": "Month",
+    "calMode_day": "Day",
     "searchPlaceholder": "Search jobs...",
     "allAgents": "All Agents",
     "allStates": "All States",

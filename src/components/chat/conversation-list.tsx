@@ -334,8 +334,8 @@ export function ConversationList({ onNewConversation: _onNewConversation }: Conv
     return (
       c.id.toLowerCase().includes(s) ||
       (c.name || '').toLowerCase().includes(s) ||
-      c.lastMessage?.from_agent.toLowerCase().includes(s) ||
-      c.lastMessage?.content.toLowerCase().includes(s)
+      (c.lastMessage?.from_agent || '').toLowerCase().includes(s) ||
+      (c.lastMessage?.content || '').toLowerCase().includes(s)
     )
   })
 

@@ -175,7 +175,18 @@ async function loadChannelsViaCli(probe = false): Promise<ChannelsSnapshot> {
   const { runOpenClaw } = await import('@/lib/command')
   const args = ['channels', 'status', '--json', '--timeout', '5000']
   if (probe) args.push('--probe')
-  const { stdout } = await runOpenClaw(args, { timeoutMs: probe ? 20000 : 15000 })
+  let stdout: string
+  try {
+    const result = await runOpenClaw(args, { timeoutMs: probe ? 20000 : 15000 })
+    stdout = result.stdout
+  } catch (err: unknown) {
+    const errStdout = (err as Record<string, unknown>)?.stdout
+    if (typeof errStdout === 'string' && errStdout.trim()) {
+      stdout = errStdout
+    } else {
+      throw err
+    }
+  }
   return {
     ...transformGatewayChannels(JSON.parse(stdout)),
     connected: true,

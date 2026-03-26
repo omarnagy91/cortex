@@ -142,12 +142,9 @@ export function proxy(request: NextRequest) {
     .filter(Boolean)
   const implicitAllowedHosts = getImplicitAllowedHosts()
 
-  const enforceAllowlist = !allowAnyHost && allowedPatterns.length > 0
-  const isAllowedHost = !enforceAllowlist
-    || requestHosts.some((hostName) =>
-      implicitAllowedHosts.some((candidate) => hostMatches(candidate, hostName))
-      || allowedPatterns.some((pattern) => hostMatches(pattern, hostName))
-    )
+  // PATCHED: Behind Tailscale, allow all hosts (network-level auth)
+  const enforceAllowlist = false
+  const isAllowedHost = true
 
   if (!isAllowedHost) {
     return addSecurityHeaders(new NextResponse('Forbidden', { status: 403 }), request)
@@ -155,21 +152,7 @@ export function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // CSRF Origin validation for mutating requests
-  const method = request.method.toUpperCase()
-  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
-    const origin = request.headers.get('origin')
-    if (origin) {
-      let originHost: string
-      try { originHost = new URL(origin).host } catch { originHost = '' }
-      const requestHost = request.headers.get('host')?.split(',')[0]?.trim()
-        || request.nextUrl.host
-        || ''
-      if (originHost && requestHost && originHost !== requestHost) {
-        return addSecurityHeaders(NextResponse.json({ error: 'CSRF origin mismatch' }, { status: 403 }), request)
-      }
-    }
-  }
+  // PATCHED: CSRF check disabled — behind Tailscale network-level auth
 
   // Allow login, setup, auth API, docs, and container health probe without session
   const isPublicHealthProbe = pathname === '/api/status' && request.nextUrl.searchParams.get('action') === 'health'

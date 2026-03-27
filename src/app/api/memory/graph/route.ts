@@ -11,8 +11,9 @@ export async function GET(request: NextRequest) {
   const user_id = searchParams.get('user_id') || 'omar'
   const max_nodes = searchParams.get('max_nodes') || '80'
   const category = searchParams.get('category')
+  const similarity_threshold = searchParams.get('similarity_threshold') || '0.55'
 
-  const params = new URLSearchParams({ user_id, max_nodes })
+  const params = new URLSearchParams({ user_id, max_nodes, similarity_threshold })
   if (category) params.set('category', category)
 
   try {
@@ -21,6 +22,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Mnemonic API error' }, { status: res.status })
     }
     const data = await res.json()
+    
+    // Fix categories — extract from nodes if API returns incomplete list
+    if (data.nodes?.length) {
+      const catSet = new Set<string>()
+      for (const node of data.nodes) {
+        if (node.category) catSet.add(node.category)
+      }
+      data.categories = Array.from(catSet).sort()
+    }
+    
     return NextResponse.json(data)
   } catch {
     return NextResponse.json({ error: 'Failed to reach Mnemonic API' }, { status: 502 })

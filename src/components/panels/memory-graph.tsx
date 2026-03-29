@@ -6,7 +6,7 @@ import { GraphCanvas, GraphCanvasRef, type Theme, type GraphNode as ReagraphNode
 
 // --- Mnemonic data interfaces ---
 
-interface MnemonicNode {
+interface VikingNode {
   id: string
   memory: string
   category: string
@@ -14,25 +14,27 @@ interface MnemonicNode {
   created_at: string
 }
 
-interface MnemonicEdge {
+interface VikingEdge {
   from: string
   to: string
   similarity: number
   weight: number
 }
 
-interface MnemonicGraphData {
-  nodes: MnemonicNode[]
-  edges: MnemonicEdge[]
+interface VikingGraphData {
+  nodes: VikingNode[]
+  edges: VikingEdge[]
   categories: string[]
   total_memories: number
 }
 
-// --- Category colors ---
-
-type CategoryName = 'personal' | 'business' | 'technical' | 'decision' | 'relationship' | 'temporal' | 'uncategorized'
+type CategoryName = 
+  | 'personal' | 'business' | 'technical' | 'decision' | 'relationship' | 'temporal' | 'uncategorized'
+  | 'profile' | 'preferences' | 'entities' | 'events' | 'cases' | 'patterns' | 'tools' | 'skills'
+  | 'agent' | 'resources' | 'user' | 'session'
 
 const CATEGORY_COLORS: Record<CategoryName, string> = {
+  // Legacy Mnemonic categories
   personal: '#4CAF50',
   business: '#2196F3',
   technical: '#FF9800',
@@ -40,6 +42,20 @@ const CATEGORY_COLORS: Record<CategoryName, string> = {
   relationship: '#E91E63',
   temporal: '#607D8B',
   uncategorized: '#795548',
+  // OpenViking categories
+  profile: '#00BCD4',
+  preferences: '#8BC34A',
+  entities: '#3F51B5',
+  events: '#FF5722',
+  cases: '#009688',
+  patterns: '#CDDC39',
+  tools: '#FFC107',
+  skills: '#673AB7',
+  // Scope categories
+  agent: '#1E88E5',
+  resources: '#43A047',
+  user: '#FB8C00',
+  session: '#8E24AA'
 }
 
 function getCategoryColor(cat: string): string {
@@ -94,11 +110,11 @@ const obsidianTheme: Theme = {
 
 export function MemoryGraph() {
   const t = useTranslations('memoryGraph')
-  const [data, setData] = useState<MnemonicGraphData | null>(null)
+  const [data, setData] = useState<VikingGraphData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [categoryFilter, setCategoryFilter] = useState<string>('')
-  const [selectedNode, setSelectedNode] = useState<MnemonicNode | null>(null)
+  const [selectedNode, setSelectedNode] = useState<VikingNode | null>(null)
   const [actives, setActives] = useState<string[]>([])
   const [hoveredNode, setHoveredNode] = useState<{ label: string; sub?: string } | null>(null)
 
@@ -161,14 +177,14 @@ export function MemoryGraph() {
 
   const handleNodeClick = useCallback((node: InternalGraphNode) => {
     if (node.data) {
-      setSelectedNode(node.data as MnemonicNode)
+      setSelectedNode(node.data as VikingNode)
     }
   }, [])
 
   const handleNodeHover = useCallback((node: InternalGraphNode) => {
     setActives([node.id])
     if (node.data) {
-      const d = node.data as MnemonicNode
+      const d = node.data as VikingNode
       setHoveredNode({
         label: d.memory.slice(0, 80) + (d.memory.length > 80 ? '…' : ''),
         sub: `${d.category} · imp: ${d.importance}`,
@@ -199,7 +215,7 @@ export function MemoryGraph() {
         return other ? { node: other, similarity: e.similarity } : null
       })
       .filter(Boolean)
-      .slice(0, 5) as { node: MnemonicNode; similarity: number }[]
+      .slice(0, 5) as { node: VikingNode; similarity: number }[]
   }, [selectedNode, data])
 
   if (isLoading) {

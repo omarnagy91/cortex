@@ -1,25 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireRole } from '@/lib/auth'
+import { deriveCategoryFromUri } from '@/lib/openviking-utils'
 
-const MNEMONIC_API_URL = process.env.MNEMONIC_API_URL || 'http://localhost:8765'
+const OPENVIKING_API_URL = process.env.OPENVIKING_API_URL || process.env.MNEMONIC_API_URL || 'http://localhost:1933'
 
 export async function GET(request: NextRequest) {
   const auth = requireRole(request, 'viewer')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
-  const { searchParams } = new URL(request.url)
-  const user_id = searchParams.get('user_id') || 'omar'
-
-  const params = new URLSearchParams({ user_id })
-
   try {
-    const res = await fetch(`${MNEMONIC_API_URL}/categories?${params}`, { cache: 'no-store' })
-    if (!res.ok) {
-      return NextResponse.json({ error: 'Mnemonic API error' }, { status: res.status })
+    const categoryCount: Record<string, number> = {}
+    
+    // Get categories from memory stats
+    const statsRes = await fetch(`${OPENVIKING_API_URL}/api/v1/stats/memories`, { cache: 'no-store' })
+    if (statsRes.ok) {
+      const statsData = await statsRes.json()
+      if (statsData.by_category) {
+        Object.assign(categoryCount, statsData.by_category)
+      }
     }
-    const data = await res.json()
-    return NextResponse.json(data)
+    
+    // Also scan filesystem categories
+    const fsRes = await fetch(`${OPENVIKING_API_URL}/api/v1/fs/tree?uri=viking://resources/memories&depth=1`, { cache: 'no-store' })
+    if (fsRes.ok) {
+      const fsData = await fsRes.json()
+      if (fsData.children) {
+        for (const child of fsData.children) {
+          if (child.uri) {
+            const category = deriveCategoryFromUri(child.uri)
+            categoryCount[category] = (categoryCount[category] || 0) + 1
+          }
+        }
+      }
+    }
+    
+    // Transform to expected format
+    const categories = Object.entries(categoryCount).map(([name, count]) => ({ name, count }))
+    
+    return NextResponse.json({ categories })
   } catch {
-    return NextResponse.json({ error: 'Failed to reach Mnemonic API' }, { status: 502 })
+    return NextResponse.json({ error: 'Failed to reach OpenViking API' }, { status: 502 })
   }
 }

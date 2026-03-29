@@ -1,34 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireRole } from '@/lib/auth'
+import { deriveCategoryFromUri } from '@/lib/openviking-utils'
 
-const MNEMONIC_API_URL = process.env.MNEMONIC_API_URL || 'http://localhost:8765'
+const OPENVIKING_API_URL = process.env.OPENVIKING_API_URL || process.env.MNEMONIC_API_URL || 'http://localhost:1933'
 
 export async function GET(request: NextRequest) {
   const auth = requireRole(request, 'viewer')
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { searchParams } = new URL(request.url)
-  const user_id = searchParams.get('user_id') || 'omar'
-  const limit = searchParams.get('limit') || '100'
+  const limit = parseInt(searchParams.get('limit') || '100', 10)
   const category = searchParams.get('category')
-  const min_importance = searchParams.get('min_importance')
-  const from = searchParams.get('from')
-  const to = searchParams.get('to')
-
-  const params = new URLSearchParams({ user_id, limit })
-  if (category) params.set('category', category)
-  if (min_importance) params.set('min_importance', min_importance)
-  if (from) params.set('from', from)
-  if (to) params.set('to', to)
 
   try {
-    const res = await fetch(`${MNEMONIC_API_URL}/timeline?${params}`, { cache: 'no-store' })
+    const res = await fetch(`${OPENVIKING_API_URL}/api/v1/fs/tree?uri=viking://resources&depth=3`, { cache: 'no-store' })
     if (!res.ok) {
-      return NextResponse.json({ error: 'Mnemonic API error' }, { status: res.status })
+      return NextResponse.json({ error: 'OpenViking API error' }, { status: res.status })
     }
+    
     const data = await res.json()
-    return NextResponse.json(data)
+    const entries: any[] = []
+    
+    function processEntry(entry: any) {
+      if (entry.abstract && entry.uri) {
+        const entryCategory = deriveCategoryFromUri(entry.uri)
+        
+        // Filter by category if provided
+        if (category && entryCategory !== category) return
+        
+        entries.push({
+          memory: entry.abstract,
+          category: entryCategory,
+          importance: 0.5,
+          created_at: entry.modTime || new Date().toISOString()
+        })
+      }
+      
+      if (entry.children) {
+        for (const child of entry.children) {
+          processEntry(child)
+        }
+      }
+    }
+    
+    if (data.children) {
+      for (const child of data.children) {
+        processEntry(child)
+      }
+    }
+    
+    // Sort by modTime descending and apply limit
+    entries.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    const limitedEntries = entries.slice(0, limit)
+    
+    return NextResponse.json({ entries: limitedEntries })
   } catch {
-    return NextResponse.json({ error: 'Failed to reach Mnemonic API' }, { status: 502 })
+    return NextResponse.json({ error: 'Failed to reach OpenViking API' }, { status: 502 })
   }
 }

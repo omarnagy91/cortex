@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireRole } from '@/lib/auth'
+import { deriveCategoryFromUri } from '@/lib/openviking-utils'
 
-const MNEMONIC_API_URL = process.env.MNEMONIC_API_URL || 'http://localhost:8765'
+const OPENVIKING_API_URL = process.env.OPENVIKING_API_URL || process.env.MNEMONIC_API_URL || 'http://localhost:1933'
 
 export async function POST(request: NextRequest) {
   const auth = requireRole(request, 'viewer')
@@ -9,18 +10,36 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const res = await fetch(`${MNEMONIC_API_URL}/search`, {
+    const { query, limit } = body
+    
+    const res = await fetch(`${OPENVIKING_API_URL}/api/v1/search/search`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ query, limit }),
       cache: 'no-store',
     })
+    
     if (!res.ok) {
-      return NextResponse.json({ error: 'Mnemonic API error' }, { status: res.status })
+      return NextResponse.json({ error: 'OpenViking API error' }, { status: res.status })
     }
+    
     const data = await res.json()
-    return NextResponse.json(data)
+    
+    // Transform response: merge memories + resources + skills arrays into flat results
+    const memories = data.memories || []
+    const resources = data.resources || []
+    const skills = data.skills || []
+    
+    const results = [...memories, ...resources, ...skills].map((item: any) => ({
+      memory: item.abstract || item.uri,
+      category: deriveCategoryFromUri(item.uri),
+      importance: item.score || 0.5,
+      created_at: new Date().toISOString(),
+      score: item.score || 0
+    }))
+    
+    return NextResponse.json({ results })
   } catch {
-    return NextResponse.json({ error: 'Failed to reach Mnemonic API' }, { status: 502 })
+    return NextResponse.json({ error: 'Failed to reach OpenViking API' }, { status: 502 })
   }
 }

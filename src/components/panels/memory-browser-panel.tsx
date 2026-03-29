@@ -6,18 +6,22 @@ import { MemoryGraph } from '@/components/panels/memory-graph'
 
 // --- Types ---
 
-type CategoryName = 'personal' | 'business' | 'technical' | 'decision' | 'relationship' | 'temporal' | 'uncategorized'
+type CategoryName = 
+  | 'personal' | 'business' | 'technical' | 'decision' | 'relationship' | 'temporal' | 'uncategorized'
+  | 'profile' | 'preferences' | 'entities' | 'events' | 'cases' | 'patterns' | 'tools' | 'skills'
+  | 'agent' | 'resources' | 'user' | 'session'
 
 const CATEGORY_COLORS: Record<CategoryName, string> = {
-  personal: '#4CAF50',
-  business: '#2196F3',
-  technical: '#FF9800',
-  decision: '#9C27B0',
-  relationship: '#E91E63',
-  temporal: '#607D8B',
-  uncategorized: '#795548',
+  // Legacy Mnemonic categories
+  personal: '#4CAF50', business: '#2196F3', technical: '#FF9800',
+  decision: '#9C27B0', relationship: '#E91E63', temporal: '#607D8B', uncategorized: '#795548',
+  // OpenViking categories
+  profile: '#00BCD4', preferences: '#8BC34A', entities: '#3F51B5',
+  events: '#FF5722', cases: '#009688', patterns: '#CDDC39',
+  tools: '#FFC107', skills: '#673AB7',
+  // Scope categories
+  agent: '#1E88E5', resources: '#43A047', user: '#FB8C00', session: '#8E24AA'
 }
-
 function getCategoryColor(cat: string): string {
   return CATEGORY_COLORS[cat as CategoryName] ?? '#795548'
 }
@@ -366,7 +370,7 @@ export function MemoryBrowserPanel() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
         <h2 className="text-sm font-semibold text-foreground">Memory</h2>
-        <span className="text-[10px] text-muted-foreground font-mono">Mnemonic v4</span>
+        <span className="text-[10px] text-muted-foreground font-mono">OpenViking v4</span>
       </div>
 
       {/* Tab bar */}

@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'OpenViking API error' }, { status: res.status })
     }
     
-    const data = await res.json()
+    const raw = await res.json()
+    const data = raw.result || raw
     
     // Transform response: merge memories + resources + skills arrays into flat results
     const memories = data.memories || []

@@ -37,45 +37,37 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'OpenViking API error' }, { status: res.status })
     }
     const data = await res.json()
+    // OpenViking returns {status: "ok", result: [...flat array of entries...]}
+    const entries: any[] = data.result || data.children || []
     
     const nodes: VikingNode[] = []
     const edges: VikingEdge[] = []
     const categories = new Set<string>()
     
-    // Transform tree entries into graph nodes
-    function processEntry(entry: any, parentUri?: string) {
-      if (entry.uri && entry.abstract) {
-        const category = deriveCategoryFromUri(entry.uri)
-        categories.add(category)
-        
-        nodes.push({
-          id: entry.uri,
-          memory: entry.abstract,
-          category,
-          importance: 0.5,
-          created_at: entry.modTime || new Date().toISOString()
-        })
-        
-        // Create edge to parent
-        if (parentUri) {
-          edges.push({
-            source: parentUri,
-            target: entry.uri
-          })
-        }
-      }
-      
-      // Process children
-      if (entry.children) {
-        for (const child of entry.children) {
-          processEntry(child, entry.uri)
-        }
-      }
-    }
+    // Build URI set for parent-child edge detection
+    const uriSet = new Set(entries.map((e: any) => e.uri))
     
-    if (data.children) {
-      for (const child of data.children) {
-        processEntry(child)
+    for (const entry of entries) {
+      if (!entry.uri) continue
+      const category = deriveCategoryFromUri(entry.uri)
+      categories.add(category)
+      
+      nodes.push({
+        id: entry.uri,
+        memory: entry.abstract || entry.rel_path || entry.uri,
+        category,
+        importance: 0.5,
+        created_at: entry.modTime || new Date().toISOString()
+      })
+      
+      // Derive parent URI and create edge
+      const parts = entry.uri.replace('viking://', '').split('/')
+      if (parts.length > 1) {
+        const parentPath = parts.slice(0, -1).join('/')
+        const parentUri = 'viking://' + parentPath
+        if (uriSet.has(parentUri)) {
+          edges.push({ source: parentUri, target: entry.uri })
+        }
       }
     }
     

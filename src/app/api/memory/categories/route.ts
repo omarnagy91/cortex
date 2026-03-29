@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
     // Get categories from memory stats
     const statsRes = await fetch(`${OPENVIKING_API_URL}/api/v1/stats/memories`, { cache: 'no-store' })
     if (statsRes.ok) {
-      const statsData = await statsRes.json()
+      const statsRaw = await statsRes.json()
+      const statsData = statsRaw.result || statsRaw
       if (statsData.by_category) {
         Object.assign(categoryCount, statsData.by_category)
       }
@@ -23,13 +24,12 @@ export async function GET(request: NextRequest) {
     // Also scan filesystem categories
     const fsRes = await fetch(`${OPENVIKING_API_URL}/api/v1/fs/tree?uri=viking://resources/memories&depth=1`, { cache: 'no-store' })
     if (fsRes.ok) {
-      const fsData = await fsRes.json()
-      if (fsData.children) {
-        for (const child of fsData.children) {
-          if (child.uri) {
-            const category = deriveCategoryFromUri(child.uri)
-            categoryCount[category] = (categoryCount[category] || 0) + 1
-          }
+      const fsRaw = await fsRes.json()
+      const fsEntries = fsRaw.result || fsRaw.children || []
+      for (const child of fsEntries) {
+        if (child.uri) {
+          const category = deriveCategoryFromUri(child.uri)
+          categoryCount[category] = (categoryCount[category] || 0) + 1
         }
       }
     }

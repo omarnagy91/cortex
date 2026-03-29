@@ -10,30 +10,38 @@ export async function GET(request: NextRequest) {
   try {
     // Get memory stats
     const statsRes = await fetch(`${OPENVIKING_API_URL}/api/v1/stats/memories`, { cache: 'no-store' })
-    if (!statsRes.ok) {
-      return NextResponse.json({ error: 'OpenViking API error' }, { status: statsRes.status })
-    }
-    const statsData = await statsRes.json()
+    const statsOk = statsRes.ok
+    const statsData = statsOk ? (await statsRes.json()).result || {} : {}
     
-    // Get resource count
+    // Get resource count from tree
     const resourcesRes = await fetch(`${OPENVIKING_API_URL}/api/v1/fs/tree?uri=viking://resources&depth=1`, { cache: 'no-store' })
     let resourceCount = 0
+    let categoryCounts: Record<string, number> = {}
     if (resourcesRes.ok) {
       const resourcesData = await resourcesRes.json()
-      resourceCount = resourcesData.children?.length || 0
+      const entries = resourcesData.result || []
+      resourceCount = entries.length
+      // Count by top-level resource category
+      for (const entry of entries) {
+        const name = (entry.rel_path || '').replace('resources/', '').split('/')[0].replace('.md', '')
+        if (name) categoryCounts[name] = (categoryCounts[name] || 0) + 1
+      }
     }
     
-    // Transform response to match old shape
+    // Merge categories from both sources
+    const mergedCategories = { ...categoryCounts, ...(statsData.by_category || {}) }
+    const memCount = statsData.total_memories || 0
+    
     const result = {
-      total_memories: statsData.total_memories + resourceCount,
-      categories: statsData.by_category || {},
+      total_memories: memCount + resourceCount,
+      categories: mergedCategories,
       by_source: {
-        openviking: resourceCount,
-        memories: statsData.total_memories
+        openviking_resources: resourceCount,
+        openviking_memories: memCount
       },
       importance_distribution: statsData.hotness_distribution || {},
-      recent_24h: statsData.staleness?.not_accessed_7d ? 0 : statsData.total_memories,
-      recent_7d: statsData.total_memories - (statsData.staleness?.not_accessed_7d || 0),
+      recent_24h: 0,
+      recent_7d: resourceCount,
       average_importance: 0.5
     }
     

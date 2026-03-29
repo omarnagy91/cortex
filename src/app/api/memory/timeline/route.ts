@@ -18,35 +18,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'OpenViking API error' }, { status: res.status })
     }
     
-    const data = await res.json()
+    const raw = await res.json()
+    // OpenViking tree returns flat array in result
+    const treeEntries: any[] = raw.result || raw.children || []
     const entries: any[] = []
     
-    function processEntry(entry: any) {
-      if (entry.abstract && entry.uri) {
-        const entryCategory = deriveCategoryFromUri(entry.uri)
-        
-        // Filter by category if provided
-        if (category && entryCategory !== category) return
-        
-        entries.push({
-          memory: entry.abstract,
-          category: entryCategory,
-          importance: 0.5,
-          created_at: entry.modTime || new Date().toISOString()
-        })
-      }
+    for (const entry of treeEntries) {
+      if (!entry.uri) continue
+      const entryCategory = deriveCategoryFromUri(entry.uri)
       
-      if (entry.children) {
-        for (const child of entry.children) {
-          processEntry(child)
-        }
-      }
-    }
-    
-    if (data.children) {
-      for (const child of data.children) {
-        processEntry(child)
-      }
+      // Filter by category if provided
+      if (category && entryCategory !== category) continue
+      
+      entries.push({
+        memory: entry.abstract || entry.rel_path || entry.uri,
+        category: entryCategory,
+        importance: 0.5,
+        created_at: entry.modTime || new Date().toISOString()
+      })
     }
     
     // Sort by modTime descending and apply limit

@@ -1,0 +1,39 @@
+Cortex
+======
+
+This repository is a fork of Mission Control by Builderz Labs.
+
+Upstream
+--------
+- Project: Mission Control
+- Authors: Builderz Labs
+- License: MIT (see LICENSE)
+- Copyright: © 2026 Builderz Labs
+- URL: https://github.com/builderz-labs/mission-control
+
+The upstream authors are responsible for substantially all of the code,
+documentation, design, and architecture in this repository. Please direct
+stars, sponsorship, and bug reports affecting upstream code to their repo.
+
+Downstream modifications
+------------------------
+The following modifications are made by Omar G. Nagy (https://omargnagy.com)
+on top of the upstream Mission Control codebase. They retain the upstream
+MIT license.
+
+- 2026-04 — fix: correct OpenViking API response unwrapping (result wrapper)
+  Fixes how the OpenViking gateway response envelope is unwrapped before
+  being passed to downstream consumers.
+
+That is the complete scope of downstream modifications at this time. Any
+further changes will be appended above this line and dated.
+
+Trademarks and donation addresses
+---------------------------------
+The Solana donation address `BYLu8XD8hGDUtdRBWpGWu5HKoiPrWqCxYFSh4oxXuvPg`
+referenced in the README belongs to Builderz Labs (the upstream authors),
+not to Omar G. Nagy. It is preserved here for users who wish to support
+the upstream project.
+
+The "Cortex" name in this fork's repository slug is a working name for the
+downstream variant and does not imply endorsement by Builderz Labs.

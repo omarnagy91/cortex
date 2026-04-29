@@ -4,10 +4,6 @@
 
 **AI agent orchestration dashboard with enhanced memory, mobile UX, and Mnemonic integration.**
 
-A fork of [Mission Control](https://github.com/builderz-labs/mission-control) with Mnemonic v4 memory integration, mobile-responsive UX, and targeted bug fixes.
-
-Manage agent fleets, track tasks, monitor costs, and orchestrate workflows — with persistent semantic memory via the Mnemonic API.
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
 [![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
@@ -17,6 +13,20 @@ Manage agent fleets, track tasks, monitor costs, and orchestrate workflows — w
 ![Mission Control Dashboard](docs/mission-control-overview.png)
 
 </div>
+
+---
+
+## Origin & attribution
+
+Cortex is a **fork** of [Builderz Labs' Mission Control](https://github.com/builderz-labs/mission-control) (MIT, © 2026 Builderz Labs). The vast majority of the code, design, and documentation in this repository is the work of the upstream Mission Control authors — please go and star [their repo](https://github.com/builderz-labs/mission-control) if you find this project useful.
+
+**My contributions on top of upstream** (Omar G. Nagy, [omargnagy.com](https://omargnagy.com)):
+
+- `fix: correct OpenViking API response unwrapping (result wrapper)` — single commit fixing how the OpenViking gateway response envelope is unwrapped before being passed to downstream consumers.
+
+That is the entire scope of my modifications. If you are evaluating Cortex as production-ready agent infrastructure, treat it as Mission Control with one downstream bug-fix layered on top — install the upstream original instead unless you specifically need the OpenViking unwrap fix.
+
+A full upstream-tracking changelog and any future modifications will be recorded in [`NOTICE`](NOTICE) and [`CHANGELOG.md`](CHANGELOG.md).
 
 ---
 
@@ -747,15 +757,13 @@ Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup inst
 
 To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
-## ❤️ Support the Project
+## ❤️ Support the upstream project
 
-If you find this project useful, consider supporting my open-source work.
+Cortex is a tiny fork on top of Builderz Labs' Mission Control. **If this project is useful to you, please support the upstream authors directly** — they did the heavy lifting:
 
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-orange?logo=buymeacoffee)](https://buymeacoffee.com/nyk_builderz)
-
-**Solana donations**
-
-`BYLu8XD8hGDUtdRBWpGWu5HKoiPrWqCxYFSh4oxXuvPg`
+- Star [builderz-labs/mission-control](https://github.com/builderz-labs/mission-control)
+- [Buy Me A Coffee — Builderz Labs](https://buymeacoffee.com/nyk_builderz)
+- Solana: `BYLu8XD8hGDUtdRBWpGWu5HKoiPrWqCxYFSh4oxXuvPg` (Builderz Labs' wallet, not mine)
 
 <p align="center">
   <a href="https://star-history.com/#builderz-labs/mission-control&Date">
@@ -765,4 +773,4 @@ If you find this project useful, consider supporting my open-source work.
 
 ## License
 
-[MIT](LICENSE) © 2026 [Builderz Labs](https://github.com/builderz-labs/mission-control)
+[MIT](LICENSE) © 2026 [Builderz Labs](https://github.com/builderz-labs/mission-control) for the upstream Mission Control work, with downstream modifications by Omar G. Nagy. See [`NOTICE`](NOTICE) for the contribution log.
